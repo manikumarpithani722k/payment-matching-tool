@@ -48,6 +48,8 @@ public class MatchResult {
     @Column(nullable = false, updatable = false)
     private Instant createdAt;
 
+ //   private String example;
+
     protected MatchResult() {
     }
 
