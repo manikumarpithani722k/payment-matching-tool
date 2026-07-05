@@ -1,0 +1,112 @@
+<main class="page-shell">
+  <section class="toolbar">
+    <div>
+      <h1>Payments Matching</h1>
+      <p>Upload the System and Provider CSV files, run matching, and resolve exceptions.</p>
+    </div>
+    <a class="swagger-link" href="http://localhost:8081/swagger-ui.html" target="_blank" rel="noreferrer">
+      Swagger
+    </a>
+  </section>
+
+  <section class="upload-panel" aria-label="Upload and run match">
+    <div class="field">
+      <label for="systemFile">System CSV</label>
+      <input id="systemFile" type="file" accept=".csv,text/csv" (change)="onSystemFileSelected($event)" />
+      <span>{{ systemFile?.name || 'No file selected' }}</span>
+    </div>
+
+    <div class="field">
+      <label for="providerFile">Provider CSV</label>
+      <input id="providerFile" type="file" accept=".csv,text/csv" (change)="onProviderFileSelected($event)" />
+      <span>{{ providerFile?.name || 'No file selected' }}</span>
+    </div>
+
+    <button class="primary-button" type="button" (click)="runMatch()" [disabled]="loading">
+      {{ loading ? 'Working...' : 'Run Match' }}
+    </button>
+  </section>
+
+  <p class="message error" *ngIf="errorMessage">{{ errorMessage }}</p>
+  <p class="message success" *ngIf="successMessage">{{ successMessage }}</p>
+
+  <section class="summary-grid" *ngIf="summary">
+    <div>
+      <span>Total</span>
+      <strong>{{ summary.total }}</strong>
+    </div>
+    <div>
+      <span>Matched</span>
+      <strong>{{ summary.matched }}</strong>
+    </div>
+    <div>
+      <span>Only System</span>
+      <strong>{{ summary.onlySystem }}</strong>
+    </div>
+    <div>
+      <span>Only Provider</span>
+      <strong>{{ summary.onlyProvider }}</strong>
+    </div>
+    <div>
+      <span>Amount Mismatch</span>
+      <strong>{{ summary.amountMismatch }}</strong>
+    </div>
+  </section>
+
+  <section class="results-panel">
+    <div class="results-header">
+      <h2>Results</h2>
+      <label>
+        Show
+        <select [(ngModel)]="filter" (change)="loadResults()">
+          <option *ngFor="let item of filters" [ngValue]="item">{{ item }}</option>
+        </select>
+      </label>
+    </div>
+
+    <div class="table-wrap">
+      <table>
+        <thead>
+          <tr>
+            <th>Order ID</th>
+            <th>System Amount</th>
+            <th>Provider Amount</th>
+            <th>Currency</th>
+            <th>Status</th>
+            <th>Resolved</th>
+            <th>Resolution Side</th>
+            <th>Actions</th>
+          </tr>
+        </thead>
+        <tbody>
+          <tr *ngFor="let result of results">
+            <td>{{ result.orderId }}</td>
+            <td>{{ result.systemAmount ?? '-' }}</td>
+            <td>{{ result.providerAmount ?? '-' }}</td>
+            <td>{{ result.currency }}</td>
+            <td>
+              <span class="status" [class.matched]="result.status === 'MATCHED'" [class.warning]="result.status !== 'MATCHED'">
+                {{ statusLabel(result.status) }}
+              </span>
+            </td>
+            <td>{{ result.resolved ? 'Yes' : 'No' }}</td>
+            <td>{{ result.resolutionSide || '-' }}</td>
+            <td class="actions">
+              <button type="button" (click)="resolve(result, 'SYSTEM')" [disabled]="resolvingId === result.id">
+                Accept System
+              </button>
+              <button type="button" (click)="resolve(result, 'PROVIDER')" [disabled]="resolvingId === result.id">
+                Accept Provider
+              </button>
+            </td>
+          </tr>
+          <tr *ngIf="!results.length">
+            <td colspan="8" class="empty-state">
+              No results to show for the selected filter.
+            </td>
+          </tr>
+        </tbody>
+      </table>
+    </div>
+  </section>
+</main>
